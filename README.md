@@ -14,7 +14,7 @@ Dữ liệu thô được thu thập từ các nguồn:
 
 Các cách thiết lập môi trường, cấu trúc thư mục, sẽ được trình bày bên dưới:
 
-## Cài đặt môi trường
+## I. Cài đặt môi trường
 ```bash
 Ngôn ngữ: Python 3.8.10
 OS: Ubuntu 20.04
@@ -69,7 +69,7 @@ Do-AN-ML/
 ├── reports/              # Báo cáo, đồ thị, kết quả
 └── requirements.txt      # Các thư viện cần thiết
 ```
-## **Thư viện đã sử dụng**
+## **Thư viện sử dụng**
 ### **1. Xử lý tệp và dữ liệu**
 - **`pickle`**:
   - Lưu trữ và tải dữ liệu hoặc mô hình dưới dạng nhị phân.
@@ -117,6 +117,78 @@ Do-AN-ML/
 
 ---
 
+## II. Xử lý dữ liệu
+### Trích xuất đặc trưng bao gồm 61 đặc trưng, không tính nhãn (label):
+#### 1. Đặc Trưng Từ DOS Header
+DOS Header chứa các trường kế thừa từ định dạng tệp thực thi MS-DOS. Các đặc trưng được trích xuất bao gồm:
+- **e_magic**: Chữ ký nhận dạng tệp là tệp thực thi DOS.
+- **e_cblp, e_cp, e_crlc, e_cparhdr**: Các kích thước và offset khác nhau liên quan đến chương trình.
+- **e_minalloc, e_maxalloc**: Bộ nhớ tối thiểu và tối đa yêu cầu bởi chương trình.
+- **e_ss, e_sp, e_csum, e_ip, e_cs**: Các offset liên quan đến bộ nhớ và thực thi.
+- **e_lfarlc**: Offset tệp đến bảng relocation.
+- **e_ovno**: Số overlay.
+- **e_oemid, e_oeminfo**: Thông tin đặc thù OEM.
+- **e_lfanew**: Offset đến PE header.
+
+#### 2. Đặc Trưng Từ File Header
+File Header chứa thông tin về kiến trúc và các đặc tính cơ bản của tệp:
+- **Machine**: Kiến trúc mục tiêu (ví dụ: x86, x64).
+- **NumberOfSections**: Số lượng sections trong tệp.
+- **TimeDateStamp**: Dấu thời gian biên dịch.
+- **PointerToSymbolTable**: Con trỏ tệp đến bảng ký hiệu COFF.
+- **NumberOfSymbols**: Số lượng ký hiệu trong bảng ký hiệu.
+- **SizeOfOptionalHeader**: Kích thước của optional header.
+- **Characteristics**: Các cờ xác định đặc tính của tệp.
+
+#### 3. Đặc Trưng Từ Optional Header
+Optional Header cung cấp thêm thông tin về bố cục và thực thi của tệp:
+- **Magic**: Xác định loại tệp PE (ví dụ: PE32, PE32+).
+- **MajorLinkerVersion, MinorLinkerVersion**: Phiên bản linker.
+- **SizeOfCode, SizeOfInitializedData, SizeOfUninitializedData**: Kích thước của các đoạn dữ liệu khác nhau.
+- **AddressOfEntryPoint**: Điểm vào của tệp thực thi.
+- **BaseOfCode, BaseOfData**: Địa chỉ cơ sở của đoạn mã và đoạn dữ liệu.
+- **ImageBase**: Địa chỉ tải ưa thích của image.
+- **SectionAlignment, FileAlignment**: Các quy định căn chỉnh.
+- **MajorOperatingSystemVersion, MinorOperatingSystemVersion**: Phiên bản hệ điều hành mục tiêu.
+- **MajorImageVersion, MinorImageVersion**: Phiên bản của tệp.
+- **MajorSubsystemVersion, MinorSubsystemVersion**: Phiên bản subsystem.
+- **SizeOfImage, SizeOfHeaders**: Tổng kích thước của image và các header.
+- **CheckSum**: Tổng kiểm tra của tệp.
+- **Subsystem**: Subsystem cần thiết để chạy image.
+- **DllCharacteristics**: Đặc điểm dành riêng cho DLL.
+- **SizeOfStackReserve, SizeOfStackCommit**: Kích thước bộ nhớ stack.
+- **SizeOfHeapReserve, SizeOfHeapCommit**: Kích thước bộ nhớ heap.
+- **LoaderFlags**: Dành riêng cho sử dụng trong tương lai.
+- **NumberOfRvaAndSizes**: Số lượng entry directory trong PE header.
+
+#### 4. Đặc Trưng Từ Section
+Các đặc trưng này mô tả các section trong tệp PE:
+- **SuspiciousSections, NonSuspiciousSections**: Số lượng section đáng ngờ và section lành tính dựa trên tên của chúng.
+
+#### 5. Đặc Trưng Phát Hiện Packer
+Các đặc trưng này cho biết sự hiện diện của các packer hoặc công cụ nén:
+- **PackerDetected**: Cờ nhị phân chỉ định liệu có phát hiện packer hay không.
+- **PackerType**: Loại packer được phát hiện (nếu có).
+
+#### 6. Đặc Trưng Entropy và Kích Thước Tệp
+Các đặc trưng này phân tích entropy (độ ngẫu nhiên) và kích thước của tệp và các section:
+- **TextEntropy, DataEntropy**: Giá trị entropy của các section `.text` và `.data`.
+- **FileSize**: Tổng kích thước của tệp tính theo byte.
+- **FileEntropy**: Entropy tổng thể của tệp.
+Ở đây nhóm em sử dụng công thức Shannon entropy. Cụ thể, công thức là:
+![Shanon Entropy](reports/figures/Shanon%20Entropy.png)
+```python
+# Đếm tần suất xuất hiện của mỗi byte:
+freq_list = [0] * 256
+for byte in byte_arr:
+    freq_list[byte] += 1
+
+#Tính xác suất xuất hiện cho từng giá trị byte và áp dụng công thức:
+entropy = -sum((freq / file_size) * math.log(freq / file_size, 2)
+               for freq in freq_list if freq > 0)
+```
+#### 7. Nhãn (Label)
+- **Label**: Nhãn được gán thủ công xác định phân loại của tệp (ví dụ: lành tính hay độc hại).
 
 ## **Cách sử dụng các mô hình**
 Huấn luyện và Đánh giá Mô hình
@@ -131,6 +203,9 @@ decision_tree_model = DecisionTreeModel.load('models/decision_tree_model.pkl')
 random_forest_model = RandomForestModel.load('models/random_forest_model.pkl')
 knn_model = KNNModel.load('models/K_Nearest_Neighbors_model.pkl')
 
+# Extract data
+data = 
+
 # Dự đoán
 predictions = decision_tree_model.predict(new_data)
 probabilities = decision_tree_model.predict_proba(data)
@@ -143,4 +218,3 @@ else:
   result = f"[+] Prediction by Decision Tree is benign ({confidence:.2f}%)!!!\n"
 
 ```
-
