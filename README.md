@@ -1,17 +1,17 @@
 # Machine Learning Project - Malware classify
-
 ## Giới thiệu
+
 Dự án này sử dụng các thư viện Python để xử lý dữ liệu, xây dựng, đánh giá và phân loại mã độc bằng các phương pháp học máy như Decision Tree, Random Forest và KNN. Mục tiêu của dự án là xây dựng các mô hình có khả năng phát hiện mã độc dựa trên các đặc trưng của mã nguồn. 
 Các cách thiết lập môi trường, cấu trúc thư mục, sẽ được trình bày bên dưới:
----
 
 ## Cài đặt môi trường
-
+```bash
 Ngôn ngữ: Python 3.8.10
 OS: Ubuntu 20.04
 RAM: 8GB
 CPU: 6 Core
 Code Manager: Jupiter notebook
+```
 
 Để bắt đầu, bạn cần cài đặt môi trường Python và các thư viện cần thiết. Dưới đây là các bước để cài đặt môi trường và các thư viện yêu cầu:
 
@@ -33,6 +33,7 @@ pip install -r requirements.txt
 ```
 ---
 ## Cấu trúc thư mục
+```bash
 Do-AN-ML/
 │
 ├── data/                 # Dữ liệu thô và dữ liệu đã xử lý
@@ -41,7 +42,7 @@ Do-AN-ML/
 ├── models/               # Mô hình học máy đã huấn luyện
 ├── reports/              # Báo cáo, đồ thị, kết quả
 └── requirements.txt      # Các thư viện cần thiết
----
+```
 ## **Thư viện đã sử dụng**
 ### **1. Xử lý tệp và dữ liệu**
 - **`pickle`**:
@@ -90,7 +91,30 @@ Do-AN-ML/
 
 ---
 
+
 ## **Cách sử dụng các mô hình**
 Huấn luyện và Đánh giá Mô hình
 Các mô hình được huấn luyện và đánh giá trong thư mục `notebooks/experiments`. Bạn có thể mở các notebook này để kiểm tra quá trình huấn luyện, đánh giá mô hình và điều chỉnh các tham số như `max_depth`, `n_estimators`, và `k` cho KNN.
+## **Dự đoán với mô hình đã huấn luyện**
+Sau khi mô hình đã được huấn luyện, chúng ta có thể sử dụng mô hình để dự đoán trên dữ liệu mới:
+```python
+from src.models import DecisionTreeModel, RandomForestModel, KNNModel
+
+# Load mô hình đã huấn luyện
+decision_tree_model = DecisionTreeModel.load('models/decision_tree_model.pkl')
+random_forest_model = RandomForestModel.load('models/random_forest_model.pkl')
+knn_model = KNNModel.load('models/K_Nearest_Neighbors_model.pkl')
+
+# Dự đoán
+predictions = decision_tree_model.predict(new_data)
+probabilities = decision_tree_model.predict_proba(data)
+predicted_class = prediction[0]
+confidence = probabilities[0][predicted_class] * 100
+
+if prediction[0] == 1:
+  result = f"[+] Prediction by Decision Tree is malware ({confidence:.2f}%) !!!\n"
+else:
+  result = f"[+] Prediction by Decision Tree is benign ({confidence:.2f}%)!!!\n"
+
+```
 
