@@ -9,10 +9,8 @@ Source code tham khảo từ nguồn:
 Dữ liệu thô được thu thập từ các nguồn:
 - Nhóm tự collect từ CNET (https://download.cnet.com)
 - Virus Share
-- [Benign-NET|https://github.com/bormaa/Benign-NET] được sử dụng trong bài báo "Hassan, M., Eid, M., Elnems, H., Ahmed, E., Mesak, E., Branco, P. "Detecting Malicious .NET Files Using CLR Header Features and Machine Learning" 36th Canadian Conference on Artificial Intelligence, Canadian AI 2023, Montreal, QC, Canada, June 5–9, 2023."
-- [Malware Detection PE-Based Analysis Using Deep Learning Algorithm Dataset|https://figshare.com/articles/dataset/Malware_Detection_PE-Based_Analysis_Using_Deep_Learning_Algorithm_Dataset/6635642?file=12149696]
-
-
+- [Benign-NET](https://github.com/bormaa/Benign-NET) được sử dụng trong bài báo "Hassan, M., Eid, M., Elnems, H., Ahmed, E., Mesak, E., Branco, P. "Detecting Malicious .NET Files Using CLR Header Features and Machine Learning" 36th Canadian Conference on Artificial Intelligence, Canadian AI 2023, Montreal, QC, Canada, June 5–9, 2023."
+- [Malware Detection PE-Based Analysis Using Deep Learning Algorithm Dataset](https://figshare.com/articles/dataset/Malware_Detection_PE-Based_Analysis_Using_Deep_Learning_Algorithm_Dataset/6635642?file=12149696)
 
 Các cách thiết lập môi trường, cấu trúc thư mục, sẽ được trình bày bên dưới:
 
