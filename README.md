@@ -31,15 +31,31 @@ git clone https://github.com/lamtanhao12345/DO-AN-ML
 cd DO-AN-ML
 ```
 ### Bước 2: Tạo môi trường ảo và kích hoạt
-Sử dụng `venv` để tạo môi trường ảo:
+Cài đặt Anaconda
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+curl https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh --output anaconda.sh
+bash anaconda.sh
+```
+Nếu sử dụng bashcli
+```bash
+source ~/.bashrc
+```
+Nếu sử dụng zshcli
+```bash
+source ~/.zshrc
+```
+Tạo môi trường ảo
+```bash
+conda create --name py3108 python=3.10.8
+```
+Kích hoạt môi trường ảo
+```bash
+conda activate py3108
 ```
 ### Bước 3: Cài đặt các thư viện yêu cầu
 Cài đặt các thư viện cần thiết thông qua `pip`:
 ```bash
-pip install -r requirements.txt
+pip install -r src/requirements.txt
 ```
 ---
 ## Cấu trúc thư mục
