@@ -1,7 +1,19 @@
 # Machine Learning Project - Malware classify
 ## Giới thiệu
 
-Dự án này sử dụng các thư viện Python để xử lý dữ liệu, xây dựng, đánh giá và phân loại mã độc bằng các phương pháp học máy như Decision Tree, Random Forest và KNN. Mục tiêu của dự án là xây dựng các mô hình có khả năng phát hiện mã độc dựa trên các đặc trưng của mã nguồn. 
+Dự án này sử dụng các thư viện Python để xử lý dữ liệu, xây dựng, đánh giá và phân loại mã độc bằng các phương pháp học máy như Decision Tree, Random Forest và KNN. Mục tiêu của dự án là xây dựng các mô hình có khả năng phát hiện mã độc dựa trên các đặc trưng của mã nguồn.
+
+Source code tham khảo từ nguồn:
+- https://github.com/urwithajit9/ClaMP
+
+Dữ liệu thô được thu thập từ các nguồn:
+- Nhóm tự collect từ CNET (https://download.cnet.com)
+- Virus Share
+- [Benign-NET|https://github.com/bormaa/Benign-NET] được sử dụng trong bài báo "Hassan, M., Eid, M., Elnems, H., Ahmed, E., Mesak, E., Branco, P. "Detecting Malicious .NET Files Using CLR Header Features and Machine Learning" 36th Canadian Conference on Artificial Intelligence, Canadian AI 2023, Montreal, QC, Canada, June 5–9, 2023."
+- [Malware Detection PE-Based Analysis Using Deep Learning Algorithm Dataset|https://figshare.com/articles/dataset/Malware_Detection_PE-Based_Analysis_Using_Deep_Learning_Algorithm_Dataset/6635642?file=12149696]
+
+
+
 Các cách thiết lập môi trường, cấu trúc thư mục, sẽ được trình bày bên dưới:
 
 ## Cài đặt môi trường
@@ -13,7 +25,7 @@ CPU: 6 Core
 Code Manager: Jupiter notebook
 ```
 
-Để bắt đầu, bạn cần cài đặt môi trường Python và các thư viện cần thiết. Dưới đây là các bước để cài đặt môi trường và các thư viện yêu cầu:
+Để bắt đầu, chúng ta cần cài đặt môi trường Python và các thư viện cần thiết. Dưới đây là các bước để cài đặt môi trường và các thư viện yêu cầu:
 
 ### Bước 1: Clone dự án từ GitHub
 ```bash
