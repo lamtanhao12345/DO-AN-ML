@@ -166,9 +166,7 @@ def process_pe_file(filepath, rules, output_path, label):
         pe = pefile.PE(filepath)
         features = extract_features(pe, filepath, rules)
         features.append(label)
-        print(len(features))
         write_csv_row(output_path, features)
-        print(f"Successfully processed {filepath}")
     except Exception as e:
         print(f"Failed to process {filepath}: {e}")
 
@@ -182,6 +180,12 @@ def create_dataset(source_dir, output_path, yara_rules_path, label):
     )
     write_csv_header(output_path, header)
 
-    for filename in os.listdir(source_dir):
+
+    listfile = os.listdir(source_dir)
+    index = 0
+    total = len(listfile)
+    for filename in listfile:
+        index += 1
+        print('Process {}/{}'.format(index, total))
         filepath = os.path.join(source_dir, filename)
         process_pe_file(filepath, rules, output_path, label)

@@ -190,31 +190,29 @@ entropy = -sum((freq / file_size) * math.log(freq / file_size, 2)
 #### 7. Nhãn (Label)
 - **Label**: Nhãn được gán thủ công xác định phân loại của tệp (ví dụ: lành tính hay độc hại).
 
-## **Cách sử dụng các mô hình**
-Huấn luyện và Đánh giá Mô hình
-Các mô hình được huấn luyện và đánh giá trong thư mục `notebooks/experiments`. Bạn có thể mở các notebook này để kiểm tra quá trình huấn luyện, đánh giá mô hình và điều chỉnh các tham số như `max_depth`, `n_estimators`, và `k` cho KNN.
-## **Dự đoán với mô hình đã huấn luyện**
-Sau khi mô hình đã được huấn luyện, chúng ta có thể sử dụng mô hình để dự đoán trên dữ liệu mới:
-```python
-from src.models import DecisionTreeModel, RandomForestModel, KNNModel
 
-# Load mô hình đã huấn luyện
-decision_tree_model = DecisionTreeModel.load('models/decision_tree_model.pkl')
-random_forest_model = RandomForestModel.load('models/random_forest_model.pkl')
-knn_model = KNNModel.load('models/K_Nearest_Neighbors_model.pkl')
+## III. Chạy code
+### 1. Huấn luyện và Đánh giá Mô hình
 
-# Extract data
-data = 
+Các mô hình được huấn luyện và đánh giá trong thư mục `notebooks/experiments`.
 
-# Dự đoán
-predictions = decision_tree_model.predict(new_data)
-probabilities = decision_tree_model.predict_proba(data)
-predicted_class = prediction[0]
-confidence = probabilities[0][predicted_class] * 100
+Ta có thể mở các notebook này để kiểm tra quá trình huấn luyện, đánh giá mô hình và điều chỉnh các tham số như `max_depth`, `n_estimators`, và `k` cho KNN.
 
-if prediction[0] == 1:
-  result = f"[+] Prediction by Decision Tree is malware ({confidence:.2f}%) !!!\n"
-else:
-  result = f"[+] Prediction by Decision Tree is benign ({confidence:.2f}%)!!!\n"
+```bash
+cd src
+python features/extract.py
+```
+Sau khi thực hiện đoạn code trên, ta sẽ thu được file `dataset.csv` trong thư mục dataset.
 
+Tiếp theo thực hiện huấn luyện mô hình và export kết quả huấn luyện mô hình mô hình bằng cách:
+```bash
+cd src
+python evaluation/RandomForest.py
+python evaluation/DecisionTree.py
+python evaluation/K-nearestNeighbors.py
+```
+### 2. Load model và thực hiện predict một số file khác không nằm trong tập huấn luyện
+```bash
+cd src
+python evaluation/Predict.py ./tests
 ```
