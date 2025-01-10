@@ -5,6 +5,12 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 
 data_path = '../dataset/dataset.csv'
 data = pd.read_csv(data_path)
+
+# remove duplicate
+data = data.drop_duplicates(subset='MD5', keep='first')
+
+# drop column not use
+data = data.drop(columns='MD5',axis=1)
 data = data.drop(columns='PackerType',axis=1)
 
 # Xem thông tin về dữ liệu
@@ -15,8 +21,8 @@ print(data.info())
 x = data.iloc[:, :-1]  # Giả sử cột cuối là nhãn
 y = data.iloc[:, -1]
 
-# Chia dữ liệu thành tập train và test (60% sử dụng để train, 40% sử dụng để test)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.4, random_state=42, stratify=y)
+# Chia dữ liệu thành tập train và test (70% sử dụng để train, 30% sử dụng để test)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42, stratify=y)
 
 # Khởi tạo mô hình Decision Tree
 dt = DecisionTreeClassifier(criterion='gini', max_depth=None, random_state=42)

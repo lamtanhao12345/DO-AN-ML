@@ -8,8 +8,8 @@ PATH_BENIGN = './data/raw/benign/'
 # 4756 files 
 PATH_MALWARE = './data/raw/malware/'
 
-create_dataset(source_dir=PATH_BENIGN, output_path="benign.csv", yara_rules_path="peid.yar", label="0")
-create_dataset(source_dir=PATH_MALWARE, output_path="malware.csv", yara_rules_path="peid.yar", label="1")
+process_files_concurrently(source_dir=PATH_BENIGN, output_path="benign.csv", yara_rules_path="peid.yar", label="0", max_workers=5)
+process_files_concurrently(source_dir=PATH_MALWARE, output_path="malware.csv", yara_rules_path="peid.yar", label="1", max_workers=5)
 
 
 #  Merge 2 file de tao ra dataset

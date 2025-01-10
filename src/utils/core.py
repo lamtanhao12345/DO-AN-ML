@@ -1,10 +1,22 @@
+import hashlib
 import os
 import csv
+import concurrent
 import pefile
 import yara
-import math
+import logging
+import numpy as np
 from typing import List, Tuple
+from concurrent.futures import ThreadPoolExecutor
 
+
+# Logging configuration
+logging.basicConfig(
+    filename='process_log.txt', level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+# Feature extraction functions
 def extract_dos_header(pe):
     try:
         dos_header = pe.DOS_HEADER
@@ -63,10 +75,6 @@ def extract_optional_header(pe):
             optional_header.FileAlignment,
             optional_header.MajorOperatingSystemVersion,
             optional_header.MinorOperatingSystemVersion,
-            optional_header.MajorImageVersion,
-            optional_header.MinorImageVersion,
-            optional_header.MajorSubsystemVersion,
-            optional_header.MinorSubsystemVersion,
             optional_header.SizeOfImage,
             optional_header.SizeOfHeaders,
             optional_header.CheckSum,
@@ -80,7 +88,7 @@ def extract_optional_header(pe):
             optional_header.NumberOfRvaAndSizes
         ]
     except Exception:
-        return [0] * 29
+        return [0] * 25
 
 def get_count_suspicious_sections(pe):
     try:
@@ -122,22 +130,24 @@ def get_file_bytes_size(filepath):
         return b"", 0
 
 def calculate_file_entropy(byte_arr, file_size):
-    try:
-        if file_size == 0:
-            return 0.0
-        freq_list = [0] * 256
-        for byte in byte_arr:
-            freq_list[byte] += 1
-        entropy = -sum((freq / file_size) * math.log(freq / file_size, 2)
-                       for freq in freq_list if freq > 0)
-        return entropy
-    except Exception:
+    if file_size == 0:
         return 0.0
+    _, counts = np.unique(byte_arr, return_counts=True)
+    probabilities = counts / file_size
+    return -np.sum(probabilities * np.log2(probabilities))
 
 def extract_file_entropy(filepath):
     byte_arr, file_size = get_file_bytes_size(filepath)
     entropy = calculate_file_entropy(byte_arr, file_size)
     return [file_size, entropy]
+
+def extract_import_export_features(pe):
+    try:
+        import_count = len(pe.DIRECTORY_ENTRY_IMPORT) if hasattr(pe, 'DIRECTORY_ENTRY_IMPORT') else 0
+        export_count = len(pe.DIRECTORY_ENTRY_EXPORT.symbols) if hasattr(pe, 'DIRECTORY_ENTRY_EXPORT') else 0
+        return [import_count, export_count]
+    except Exception:
+        return [0, 0]
 
 def extract_features(pe, filepath, rules):
     features = []
@@ -148,8 +158,10 @@ def extract_features(pe, filepath, rules):
     features.extend(check_packer(filepath, rules))
     features.extend(get_text_data_entropy(pe))
     features.extend(extract_file_entropy(filepath))
+    features.extend(extract_import_export_features(pe))
     return features
 
+# CSV utility functions
 def write_csv_header(output_path, header):
     if not os.path.exists(output_path):
         with open(output_path, "w", newline="") as f:
@@ -161,31 +173,43 @@ def write_csv_row(output_path, row):
         writer = csv.writer(f)
         writer.writerow(row)
 
+def md5sum(filename):
+    md5 = hashlib.md5()
+    with open(filename, 'rb') as f:
+        for chunk in iter(lambda: f.read(128 * md5.block_size), b''):
+            md5.update(chunk)
+    return md5.hexdigest()
+
+# PE file processing
 def process_pe_file(filepath, rules, output_path, label):
     try:
         pe = pefile.PE(filepath)
         features = extract_features(pe, filepath, rules)
+        features.append(md5sum(filename=filepath))
         features.append(label)
         write_csv_row(output_path, features)
+        logging.info(f"Successfully processed: {filepath}")
+    except pefile.PEFormatError as e:
+        logging.warning(f"Invalid PE format: {filepath} - {e}")
     except Exception as e:
-        print(f"Failed to process {filepath}: {e}")
+        logging.error(f"Failed to process {filepath}: {e}")
 
-def create_dataset(source_dir, output_path, yara_rules_path, label):
+# Dataset creation with multi-threading
+def process_files_concurrently(source_dir, output_path, yara_rules_path, label, max_workers=4):
     rules = yara.compile(yara_rules_path)
     header = (
         ["e_magic", "e_cblp", "e_cp", "e_crlc", "e_cparhdr", "e_minalloc", "e_maxalloc", "e_ss", "e_sp", "e_csum", "e_ip", "e_cs", "e_lfarlc", "e_ovno", "e_oemid", "e_oeminfo", "e_lfanew"] +
         ["Machine", "NumberOfSections", "TimeDateStamp", "PointerToSymbolTable", "NumberOfSymbols", "SizeOfOptionalHeader", "Characteristics"] +
-        ["Magic", "MajorLinkerVersion", "MinorLinkerVersion", "SizeOfCode", "SizeOfInitializedData", "SizeOfUninitializedData", "AddressOfEntryPoint", "BaseOfCode", "BaseOfData", "ImageBase", "SectionAlignment", "FileAlignment", "MajorOperatingSystemVersion", "MinorOperatingSystemVersion", "MajorImageVersion", "MinorImageVersion", "MajorSubsystemVersion", "MinorSubsystemVersion", "SizeOfImage", "SizeOfHeaders", "CheckSum", "Subsystem", "DllCharacteristics", "SizeOfStackReserve", "SizeOfStackCommit", "SizeOfHeapReserve", "SizeOfHeapCommit", "LoaderFlags", "NumberOfRvaAndSizes"] +
-        ["SuspiciousSections", "NonSuspiciousSections", "PackerDetected", "PackerType", "TextEntropy", "DataEntropy", "FileSize", "FileEntropy", "Label"]
+        ["Magic", "MajorLinkerVersion", "MinorLinkerVersion", "SizeOfCode", "SizeOfInitializedData", "SizeOfUninitializedData", "AddressOfEntryPoint", "BaseOfCode", "BaseOfData", "ImageBase", "SectionAlignment", "FileAlignment", "MajorOperatingSystemVersion", "MinorOperatingSystemVersion", "SizeOfImage", "SizeOfHeaders", "CheckSum", "Subsystem", "DllCharacteristics", "SizeOfStackReserve", "SizeOfStackCommit", "SizeOfHeapReserve", "SizeOfHeapCommit", "LoaderFlags", "NumberOfRvaAndSizes"] +
+        ["SuspiciousSections", "NonSuspiciousSections", "PackerDetected", "PackerType", "TextEntropy", "DataEntropy", "FileSize", "FileEntropy", "ImportCount", "ExportCount", "MD5", "Label"]
     )
     write_csv_header(output_path, header)
 
-
-    listfile = os.listdir(source_dir)
-    index = 0
-    total = len(listfile)
-    for filename in listfile:
-        index += 1
-        print('Process {}/{}'.format(index, total))
-        filepath = os.path.join(source_dir, filename)
-        process_pe_file(filepath, rules, output_path, label)
+    files = [os.path.join(source_dir, f) for f in os.listdir(source_dir)]
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_pe_file, filepath, rules, output_path, label) for filepath in files]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(f"Error during concurrent processing: {e}")
