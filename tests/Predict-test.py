@@ -1,6 +1,7 @@
 import sys
 sys.path.append('.')
-from utils.core import *
+
+from src.utils.core import *
 
 import os
 import sys
@@ -55,7 +56,7 @@ def main(folder_path):
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         
-        if os.path.isfile(file_path) and file_path.endswith('.exe'):  # Kiểm tra file PE (thường có đuôi .exe)
+        if os.path.isfile(file_path) and file_path.endswith('.exe'):
             print(f"Predicting for {filename}...")
             predictions = predict_pe(file_path, models)
             
@@ -68,9 +69,8 @@ def main(folder_path):
                 print(f"Error processing file: {filename}")
                 
 if __name__ == "__main__":
-    # Kiểm tra đối số folder_path
     if len(sys.argv) != 2:
-        print("Usage: python predict.py <folder_path>")
+        print("Usage: python Predict-test.py <folder_path>")
         sys.exit(1)
     
     folder_path = sys.argv[1]
