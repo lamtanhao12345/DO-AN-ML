@@ -26,8 +26,8 @@ print(data.info())
 x = data.iloc[:, :-1]
 y = data.iloc[:, -1]
 
-# Chia dữ liệu thành tập train và test (70% sử dụng để train, 30% sử dụng để test)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42, stratify=y)
+# Chia dữ liệu thành tập train và test (75% train, 25% test)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42, stratify=y)
 
 
 # Sử dụng GridSearchCV để tìm giá trị tốt nhất
@@ -55,7 +55,7 @@ y_pred = knn.predict(X_test)
 
 # Đánh giá mô hình
 print("Accuracy:", accuracy_score(y_test, y_pred))
-print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("\nBáo cáo về kết quả phân loại:\n", classification_report(y_test, y_pred))
 
 
 import joblib

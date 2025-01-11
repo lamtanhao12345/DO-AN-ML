@@ -21,8 +21,8 @@ print(data.info())
 x = data.iloc[:, :-1]  # Giả sử cột cuối là nhãn
 y = data.iloc[:, -1]
 
-# Chia dữ liệu thành tập train và test (70% sử dụng để train, 30% sử dụng để test)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42, stratify=y)
+# Chia dữ liệu thành tập train và test (75% train, 25% test)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42, stratify=y)
 
 # Khởi tạo mô hình Decision Tree
 dt = DecisionTreeClassifier(criterion='gini', max_depth=None, random_state=42)

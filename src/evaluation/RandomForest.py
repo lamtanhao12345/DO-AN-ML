@@ -23,8 +23,8 @@ y = data.iloc[:, -1]
 scaler = StandardScaler()
 x_scaled = scaler.fit_transform(x)
 
-# Chia dữ liệu thành tập train và test (70% train, 30% test)
-X_train, X_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.3, random_state=42, stratify=y)
+# Chia dữ liệu thành tập train và test (75% train, 25% test)
+X_train, X_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.25, random_state=42, stratify=y)
 
 # Khởi tạo mô hình Random Forest
 rf = RandomForestClassifier(random_state=42)
