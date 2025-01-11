@@ -7,7 +7,7 @@ Source code tham khảo từ nguồn:
 - https://github.com/urwithajit9/ClaMP
 
 Dữ liệu thô được thu thập từ các nguồn:
-- Nhóm tự collect từ CNET (https://download.cnet.com)
+- Nhóm tự collect từ [CNET](https://download.cnet.com)
 - Virus Share
 - [Benign-NET](https://github.com/bormaa/Benign-NET) được sử dụng trong bài báo "Hassan, M., Eid, M., Elnems, H., Ahmed, E., Mesak, E., Branco, P. "Detecting Malicious .NET Files Using CLR Header Features and Machine Learning" 36th Canadian Conference on Artificial Intelligence, Canadian AI 2023, Montreal, QC, Canada, June 5–9, 2023."
 - [Malware Detection PE-Based Analysis Using Deep Learning Algorithm Dataset](https://figshare.com/articles/dataset/Malware_Detection_PE-Based_Analysis_Using_Deep_Learning_Algorithm_Dataset/6635642?file=12149696)
@@ -62,12 +62,11 @@ pip install -r src/requirements.txt
 ```bash
 Do-AN-ML/
 │
-├── data/                 # Dữ liệu thô và dữ liệu đã xử lý
-├── notebooks/            # Các notebook phân tích và thử nghiệm
-├── src/                  # Mã nguồn chính (xử lý dữ liệu, tạo đặc trưng, huấn luyện mô hình)
+├── dataset/              # Dữ liệu đã xử lý
+├── notebooks/            # File notebook huấn luyện mô hình
+├── src/                  # Mã nguồn chính (xử lý dữ liệu, trích xuất đặc trưng, huấn luyện mô hình)
 ├── models/               # Mô hình học máy đã huấn luyện
 ├── reports/              # Báo cáo, đồ thị, kết quả
-└── requirements.txt      # Các thư viện cần thiết
 ```
 ## **Thư viện sử dụng**
 ### **1. Xử lý tệp và dữ liệu**
@@ -151,7 +150,6 @@ Optional Header cung cấp thêm thông tin về bố cục và thực thi của
 - **SectionAlignment, FileAlignment**: Các quy định căn chỉnh.
 - **MajorOperatingSystemVersion, MinorOperatingSystemVersion**: Phiên bản hệ điều hành mục tiêu.
 - **MajorImageVersion, MinorImageVersion**: Phiên bản của tệp.
-- **MajorSubsystemVersion, MinorSubsystemVersion**: Phiên bản subsystem.
 - **SizeOfImage, SizeOfHeaders**: Tổng kích thước của image và các header.
 - **CheckSum**: Tổng kiểm tra của tệp.
 - **Subsystem**: Subsystem cần thiết để chạy image.
@@ -175,44 +173,44 @@ Các đặc trưng này phân tích entropy (độ ngẫu nhiên) và kích thư
 - **TextEntropy, DataEntropy**: Giá trị entropy của các section `.text` và `.data`.
 - **FileSize**: Tổng kích thước của tệp tính theo byte.
 - **FileEntropy**: Entropy tổng thể của tệp.
-Ở đây nhóm em sử dụng công thức Shannon entropy. Cụ thể, công thức là:
+- **ImportCount**: Số lượng hàm Import.
+- **ExportCount**: Số lượng hàm Export.
+
+Nhóm sử dụng công thức Shannon entropy. Cụ thể, công thức là:
+
 ![Shanon Entropy](reports/figures/Shanon%20Entropy.png)
+
 ```python
 # Đếm tần suất xuất hiện của mỗi byte:
-freq_list = [0] * 256
-for byte in byte_arr:
-    freq_list[byte] += 1
+_, counts = np.unique(byte_arr, return_counts=True)
 
 #Tính xác suất xuất hiện cho từng giá trị byte và áp dụng công thức:
-entropy = -sum((freq / file_size) * math.log(freq / file_size, 2)
-               for freq in freq_list if freq > 0)
+probabilities = counts / file_size
+probabilities = -np.sum(probabilities * np.log2(probabilities))
 ```
 #### 7. Nhãn (Label)
 - **Label**: Nhãn được gán thủ công xác định phân loại của tệp (ví dụ: lành tính hay độc hại).
 
 
 ## III. Chạy code
-### 1. Huấn luyện và Đánh giá Mô hình
+### 1. Trích xuất đặc trưng
 
-Các mô hình được huấn luyện và đánh giá trong thư mục `notebooks/experiments`.
-
-Ta có thể mở các notebook này để kiểm tra quá trình huấn luyện, đánh giá mô hình và điều chỉnh các tham số như `max_depth`, `n_estimators`, và `k` cho KNN.
+Thực hiện chạy code như bên dưới, sau khi chạy xong ta sẽ thu được file benign.csv, malware.csv và file dataset.csv.
 
 ```bash
 cd src
 python features/extract.py
 ```
-Sau khi thực hiện đoạn code trên, ta sẽ thu được file `dataset.csv` trong thư mục dataset.
 
-Tiếp theo thực hiện huấn luyện mô hình và export kết quả huấn luyện mô hình mô hình bằng cách:
+### 1. Huấn luyện và Đánh giá Mô hình
+
+Các mô hình được huấn luyện và đánh giá trong thư mục `notebooks/experiments`.
 ```bash
-cd src
-python evaluation/RandomForest.py
-python evaluation/DecisionTree.py
-python evaluation/K-nearestNeighbors.py
+jupyter-notebook
 ```
+
 ### 2. Load model và thực hiện predict một số file khác không nằm trong tập huấn luyện
 ```bash
 cd src
-python evaluation/Predict.py ./tests
+python evaluation/Predict-test.py ./tests
 ```
